@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mohammed Kaif M — AI & Software Engineer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--accent:#7b5ea7;--accent2:#c084fc;--accent3:#38bdf8;--green:#4ade80;--text:#e8e6f0;--muted:#7c7a90;--border:rgba(123,94,167,.18);--glow:0 0 40px rgba(123,94,167,.2)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;cursor:none}
+
+/* CURSOR */
+#cursor{position:fixed;width:12px;height:12px;background:var(--accent2);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s;mix-blend-mode:screen}
+#cursor-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(192,132,252,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .3s,height .3s,border-color .3s;mix-blend-mode:screen}
+
+/* PARTICLES */
+#particle-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(123,94,167,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(123,94,167,.04) 1px,transparent 1px);background-size:60px 60px}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.5}
+
+/* PROGRESS BAR */
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));z-index:200;width:0%;transition:width .08s linear}
+
+/* COMMAND PALETTE */
+#cmd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1100;display:none;align-items:flex-start;justify-content:center;padding-top:15vh;backdrop-filter:blur(10px)}
+#cmd-overlay.open{display:flex}
+#cmd-box{background:var(--surface);border:1px solid var(--accent);border-radius:10px;width:min(580px,90vw);overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6),var(--glow)}
+#cmd-input{width:100%;background:transparent;border:none;outline:none;padding:1.1rem 1.4rem;font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text);border-bottom:1px solid var(--border)}
+#cmd-input::placeholder{color:var(--muted)}
+.cmd-results{max-height:340px;overflow-y:auto}
+.cmd-item{display:flex;align-items:center;gap:.9rem;padding:.72rem 1.4rem;cursor:pointer;font-size:.88rem;color:var(--muted);transition:background .15s,color .15s}
+.cmd-item:hover,.cmd-item.active{background:rgba(123,94,167,.15);color:var(--text)}
+.cmd-item-icon{width:22px;text-align:center}
+.cmd-item-label{flex:1}
+.cmd-item-hint{font-family:'DM Mono',monospace;font-size:.66rem;color:var(--muted)}
+#cmd-hint{padding:.55rem 1.4rem;font-family:'DM Mono',monospace;font-size:.66rem;color:var(--muted);border-top:1px solid var(--border);display:flex;justify-content:space-between}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.1rem 3rem;background:rgba(10,10,15,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--accent2);letter-spacing:-.01em}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--accent2)}
+.nav-cmd{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);border:1px solid var(--border);padding:.28rem .75rem;border-radius:4px;cursor:pointer;transition:all .2s;background:transparent;display:flex;align-items:center;gap:.4rem}
+.nav-cmd:hover{color:var(--text);border-color:var(--accent)}
+.nav-cmd kbd{background:var(--surface2);padding:.1rem .35rem;border-radius:3px;font-size:.65rem}
+
+/* HERO */
+section{position:relative;z-index:1}
+#hero{min-height:100vh;display:flex;align-items:center;padding:8rem 3rem 4rem;max-width:1200px;margin:0 auto;gap:4rem}
+.hero-left{flex:1}
+.hero-tag{display:inline-flex;align-items:center;gap:.5rem;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--green);letter-spacing:.12em;text-transform:uppercase;border:1px solid rgba(74,222,128,.22);padding:.3rem .8rem;border-radius:2px;margin-bottom:1.5rem}
+.hero-tag::before{content:'●';font-size:.5rem;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1{font-family:'Syne',sans-serif;font-size:clamp(3rem,6vw,5.5rem);font-weight:800;line-height:1.02;letter-spacing:-.03em;opacity:0;animation:slideUp .8s .2s forwards}
+h1 span{color:var(--accent2)}
+.typewriter-wrap{margin-top:1rem;font-family:'DM Mono',monospace;font-size:1rem;color:var(--accent3);min-height:1.6rem}
+#typewriter::after{content:'|';animation:blink .8s infinite;color:var(--accent2)}
+.hero-sub{margin-top:1rem;font-size:1.05rem;color:var(--muted);max-width:540px;line-height:1.75;opacity:0;animation:slideUp .8s .5s forwards}
+.hero-cta{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:slideUp .8s .7s forwards}
+.btn{font-family:'DM Mono',monospace;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;padding:.75rem 1.8rem;border-radius:3px;text-decoration:none;transition:all .2s;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:.5rem}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 0 24px rgba(123,94,167,.35)}
+.btn-primary:hover{background:var(--accent2);box-shadow:0 0 36px rgba(192,132,252,.5);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-outline:hover{color:var(--text);border-color:var(--accent)}
+.hero-right{flex:0 0 300px;opacity:0;animation:fadeIn 1s .5s forwards}
+.hero-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.8rem;box-shadow:var(--glow)}
+.hero-card-label{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+.hero-card-val{font-family:'Syne',sans-serif;font-size:.95rem;color:var(--text);margin-bottom:1.1rem}
+.hero-card-val a{color:var(--accent3);text-decoration:none}
+.hero-card-val a:hover{text-decoration:underline}
+.chip-row{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+.chip{font-family:'DM Mono',monospace;font-size:.68rem;background:var(--surface2);color:var(--accent2);border:1px solid rgba(192,132,252,.15);padding:.2rem .65rem;border-radius:2px;letter-spacing:.04em}
+
+/* STATS STRIP */
+.stats-strip{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);margin-top:2.5rem;opacity:0;animation:slideUp .8s .9s forwards}
+.stat-item{flex:1;padding:1rem;text-align:center;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--accent2);display:block}
+.stat-label{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:block;margin-top:.1rem}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.25}
+
+/* SECTIONS */
+.section-wrap{max-width:1200px;margin:0 auto;padding:6rem 3rem}
+.section-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:3.5rem}
+.section-num{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--accent);letter-spacing:.1em}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;letter-spacing:-.02em}
+.section-line{flex:1;height:1px;background:var(--border)}
+
+/* SKILLS */
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem}
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.4rem 1.6rem;transition:border-color .25s,transform .25s,box-shadow .25s}
+.skill-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:var(--glow)}
+.skill-card-title{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--accent3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.9rem}
+.skill-tags{display:flex;flex-wrap:wrap;gap:.4rem}
+.skill-tag{font-size:.8rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:.22rem .6rem;border-radius:3px;transition:color .2s,border-color .2s}
+.skill-card:hover .skill-tag{color:var(--text);border-color:rgba(123,94,167,.3)}
+
+/* PROFICIENCY BARS */
+.prof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-top:2.2rem}
+.prof-item{display:flex;flex-direction:column;gap:.4rem}
+.prof-label{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted)}
+.prof-label span:last-child{color:var(--accent2)}
+.prof-track{height:4px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.prof-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+
+/* EXPERIENCE */
+.exp-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:2rem 2.4rem;position:relative;overflow:hidden;transition:border-color .25s,box-shadow .25s;margin-bottom:1.5rem;transform-style:preserve-3d;will-change:transform}
+.exp-block::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:3px 0 0 3px}
+.exp-block:hover{border-color:var(--accent);box-shadow:var(--glow)}
+.exp-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;margin-bottom:.3rem}
+.exp-role{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700}
+.exp-date{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--accent3);letter-spacing:.06em;background:rgba(56,189,248,.08);padding:.25rem .7rem;border-radius:2px}
+.exp-company{font-size:.9rem;color:var(--accent2);margin-bottom:1rem}
+.exp-list{padding-left:1.1rem}
+.exp-list li{color:var(--muted);font-size:.92rem;margin-bottom:.5rem;line-height:1.65}
+.exp-list li::marker{color:var(--accent)}
+
+/* PROJECTS */
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.4rem}
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.8rem;display:flex;flex-direction:column;gap:.8rem;position:relative;overflow:hidden;transform-style:preserve-3d;will-change:transform;transition:border-color .25s,box-shadow .25s;cursor:default}
+.proj-card::after{content:'';position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right,rgba(123,94,167,.12),transparent 70%);pointer-events:none}
+.proj-card:hover{border-color:var(--accent);box-shadow:0 12px 40px rgba(0,0,0,.4),var(--glow)}
+.proj-period{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.08em}
+.proj-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+.proj-desc{font-size:.88rem;color:var(--muted);line-height:1.7;flex:1}
+.proj-tech{display:flex;flex-wrap:wrap;gap:.35rem}
+.proj-tech span{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--accent2);background:rgba(192,132,252,.08);border:1px solid rgba(192,132,252,.15);padding:.18rem .55rem;border-radius:2px}
+.proj-links{display:flex;gap:.6rem;margin-top:.4rem}
+.proj-link{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:.3rem .75rem;border-radius:3px;transition:all .2s;display:inline-flex;align-items:center;gap:.35rem}
+.proj-link:hover{color:var(--text);border-color:var(--accent3);background:rgba(56,189,248,.06)}
+.proj-link svg{width:13px;height:13px;fill:currentColor}
+
+/* GITHUB REPOS SECTION */
+#github-repos .section-head{margin-bottom:1.5rem}
+.gh-filter-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2rem}
+.gh-filter{font-family:'DM Mono',monospace;font-size:.7rem;padding:.3rem .85rem;border-radius:3px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .2s;letter-spacing:.04em}
+.gh-filter:hover,.gh-filter.active{border-color:var(--accent2);color:var(--accent2);background:rgba(192,132,252,.08)}
+.gh-repos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.2rem}
+.gh-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.4rem 1.6rem;display:flex;flex-direction:column;gap:.7rem;transition:border-color .25s,transform .2s,box-shadow .25s;text-decoration:none;color:inherit;position:relative;overflow:hidden}
+.gh-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity .25s}
+.gh-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.35),var(--glow)}
+.gh-card:hover::before{opacity:1}
+.gh-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+.gh-card-name{font-family:'Syne',sans-serif;font-size:.98rem;font-weight:700;color:var(--accent2);letter-spacing:-.01em;word-break:break-word}
+.gh-card-visibility{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);border:1px solid var(--border);padding:.15rem .5rem;border-radius:2px;flex-shrink:0}
+.gh-card-desc{font-size:.82rem;color:var(--muted);line-height:1.65;flex:1}
+.gh-card-desc.empty{font-style:italic;opacity:.5}
+.gh-card-meta{display:flex;gap:1rem;flex-wrap:wrap}
+.gh-meta-item{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:.3rem}
+.gh-meta-item .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.gh-card-footer{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.gh-lang-badge{font-family:'DM Mono',monospace;font-size:.66rem;background:var(--surface2);color:var(--accent3);border:1px solid rgba(56,189,248,.15);padding:.16rem .5rem;border-radius:2px}
+.gh-stars{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:.3rem}
+.gh-updated{font-family:'DM Mono',monospace;font-size:.66rem;color:var(--muted)}
+#gh-loading{text-align:center;padding:3rem;font-family:'DM Mono',monospace;font-size:.85rem;color:var(--muted)}
+#gh-loading .dots span{animation:blink 1.4s infinite;display:inline-block}
+#gh-loading .dots span:nth-child(2){animation-delay:.2s}
+#gh-loading .dots span:nth-child(3){animation-delay:.4s}
+#gh-error{display:none;text-align:center;padding:2rem;font-family:'DM Mono',monospace;font-size:.8rem;color:var(--muted);border:1px solid var(--border);border-radius:8px}
+.gh-count{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);margin-bottom:1.5rem}
+.gh-count span{color:var(--accent2)}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem}
+.ach-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.6rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color .25s,box-shadow .25s}
+.ach-card:hover{border-color:var(--accent2);box-shadow:var(--glow)}
+.ach-icon{font-size:1.5rem;line-height:1;flex-shrink:0;margin-top:.1rem}
+.ach-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:.3rem}
+.ach-desc{font-size:.85rem;color:var(--muted);line-height:1.65}
+
+/* EDUCATION */
+.edu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.2rem}
+.edu-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.6rem 1.8rem;transition:border-color .25s,box-shadow .25s}
+.edu-card:hover{border-color:var(--accent3);box-shadow:0 0 30px rgba(56,189,248,.1)}
+.edu-school{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem}
+.edu-degree{font-size:.88rem;color:var(--accent2);margin-bottom:.6rem}
+.edu-meta{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap}
+.edu-meta span{color:var(--accent3)}
+
+/* CERTIFICATIONS */
+.cert-list{display:flex;flex-direction:column;gap:.8rem}
+.cert-item{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem 1.4rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;transition:border-color .2s}
+.cert-item:hover{border-color:var(--accent)}
+.cert-name{font-size:.92rem;color:var(--text)}
+.cert-period{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);white-space:nowrap}
+
+/* CONTACT */
+#contact{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.contact-inner{max-width:800px;margin:0 auto;padding:6rem 3rem;text-align:center}
+.contact-title{font-family:'Syne',sans-serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1rem}
+.contact-sub{color:var(--muted);margin-bottom:2.5rem;font-size:1rem}
+.contact-links{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.contact-link{display:flex;align-items:center;gap:.5rem;font-family:'DM Mono',monospace;font-size:.8rem;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:.6rem 1.4rem;border-radius:4px;transition:all .2s;letter-spacing:.04em;cursor:pointer;background:none}
+.contact-link:hover{color:var(--text);border-color:var(--accent);background:rgba(123,94,167,.08)}
+
+footer{padding:2rem 3rem;text-align:center;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);letter-spacing:.06em}
+
+/* TOAST */
+#toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface);border:1px solid var(--accent);padding:.8rem 1.4rem;border-radius:6px;font-family:'DM Mono',monospace;font-size:.78rem;color:var(--accent2);z-index:2000;transform:translateY(80px);opacity:0;transition:all .35s;box-shadow:var(--glow)}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:768px){
+  nav{padding:1rem 1.4rem}
+  .nav-links{display:none}
+  #hero{flex-direction:column;padding:6rem 1.4rem 3rem;gap:2.5rem}
+  .hero-right{flex:unset;width:100%}
+  .section-wrap{padding:4rem 1.4rem}
+  .contact-inner{padding:4rem 1.4rem}
+  body{cursor:auto}
+  #cursor,#cursor-ring{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="progress-bar"></div>
+<canvas id="particle-canvas"></canvas>
+<div class="grid-bg"></div>
+<div id="toast"></div>
+
+<!-- COMMAND PALETTE -->
+<div id="cmd-overlay">
+  <div id="cmd-box">
+    <input id="cmd-input" placeholder="Search sections, actions..." autocomplete="off"/>
+    <div class="cmd-results" id="cmd-results"></div>
+    <div id="cmd-hint"><span>↑↓ navigate</span><span>↵ select &nbsp;·&nbsp; Esc close</span></div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-logo">MK/</div>
+  <ul class="nav-links">
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#github-repos">GitHub</a></li>
+    <li><a href="#achievements">Achievements</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="nav-cmd" id="open-cmd">⌘ <kbd>K</kbd></button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-tag">Available for opportunities</div>
+    <h1>Mohammed<br/><span>Kaif M</span></h1>
+    <div class="typewriter-wrap"><span id="typewriter"></span></div>
+    <p class="hero-sub">Building intelligent systems at the intersection of AI and software engineering. Currently interning at Rubixe AI, turning data into products that scale.</p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-primary">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8z"/></svg>
+        View Projects
+      </a>
+      <a href="https://github.com/MOHAMMED-KAIF-M" target="_blank" class="btn btn-outline">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+      <a href="https://www.linkedin.com/in/mohammed-kaif-m-571bb724b/" target="_blank" class="btn btn-outline">in LinkedIn</a>
+      <a href="mailto:kaifkaif767686@gmail.com" class="btn btn-outline">✉ Email</a>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-item"><span class="stat-num" data-target="97">0</span><span class="stat-label">% Accuracy</span></div>
+      <div class="stat-item"><span class="stat-num" data-target="60">0</span><span class="stat-label">K+ Records</span></div>
+      <div class="stat-item"><span class="stat-num" id="repo-stat" data-target="0">—</span><span class="stat-label">GitHub Repos</span></div>
+      <div class="stat-item"><span class="stat-num" data-target="8">0</span><span class="stat-label">Languages</span></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-card">
+      <div class="hero-card-label">Currently</div>
+      <div class="hero-card-val">AI Intern @ Rubixe AI</div>
+      <div class="hero-card-label">Education</div>
+      <div class="hero-card-val">BE in AI & ML · SKIT · 8.32 CGPA</div>
+      <div class="hero-card-label">Location</div>
+      <div class="hero-card-val">Bangalore, Karnataka 🇮🇳</div>
+      <div class="hero-card-label">Email</div>
+      <div class="hero-card-val"><a href="mailto:kaifkaif767686@gmail.com">kaifkaif767686@gmail.com</a></div>
+      <div class="hero-card-label">Core Stack</div>
+      <div class="chip-row"><span class="chip">Python</span><span class="chip">Django</span><span class="chip">Flutter</span><span class="chip">React</span><span class="chip">Docker</span><span class="chip">AWS</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="section-wrap">
+    <div class="section-head reveal"><span class="section-num">01 /</span><h2 class="section-title">Skills</h2><div class="section-line"></div></div>
+    <div class="skills-grid">
+      <div class="skill-card reveal"><div class="skill-card-title">Programming</div><div class="skill-tags"><span class="skill-tag">Python</span><span class="skill-tag">Java</span><span class="skill-tag">C/C++</span><span class="skill-tag">JavaScript</span><span class="skill-tag">Dart</span><span class="skill-tag">SQL</span><span class="skill-tag">HTML</span><span class="skill-tag">CSS</span></div></div>
+      <div class="skill-card reveal"><div class="skill-card-title">Frameworks</div><div class="skill-tags"><span class="skill-tag">Django</span><span class="skill-tag">Flask</span><span class="skill-tag">React.js</span><span class="skill-tag">Flutter</span><span class="skill-tag">REST APIs</span><span class="skill-tag">.NET</span></div></div>
+      <div class="skill-card reveal"><div class="skill-card-title">AI / ML</div><div class="skill-tags"><span class="skill-tag">LangChain</span><span class="skill-tag">AutoGPT</span><span class="skill-tag">CrewAI</span><span class="skill-tag">AutoGen</span><span class="skill-tag">Claude API</span><span class="skill-tag">OpenAI CLIP</span><span class="skill-tag">HDBSCAN</span></div></div>
+      <div class="skill-card reveal"><div class="skill-card-title">Tools & Infra</div><div class="skill-tags"><span class="skill-tag">Docker</span><span class="skill-tag">AWS</span><span class="skill-tag">Nginx</span><span class="skill-tag">Gunicorn</span><span class="skill-tag">Git</span><span class="skill-tag">Kafka</span><span class="skill-tag">HDFS</span></div></div>
+      <div class="skill-card reveal"><div class="skill-card-title">Databases</div><div class="skill-tags"><span class="skill-tag">MySQL</span><span class="skill-tag">PostgreSQL</span><span class="skill-tag">MongoDB</span></div></div>
+      <div class="skill-card reveal"><div class="skill-card-title">Concepts</div><div class="skill-tags"><span class="skill-tag">DSA</span><span class="skill-tag">OOP</span><span class="skill-tag">SDLC</span><span class="skill-tag">Agile</span><span class="skill-tag">Computer Vision</span><span class="skill-tag">NLP</span></div></div>
+    </div>
+    <div class="prof-grid reveal" id="prof-grid">
+      <div class="prof-item"><div class="prof-label"><span>Python</span><span>95%</span></div><div class="prof-track"><div class="prof-fill" data-w="95"></div></div></div>
+      <div class="prof-item"><div class="prof-label"><span>Django / Flask</span><span>90%</span></div><div class="prof-track"><div class="prof-fill" data-w="90"></div></div></div>
+      <div class="prof-item"><div class="prof-label"><span>AI / ML Frameworks</span><span>88%</span></div><div class="prof-track"><div class="prof-fill" data-w="88"></div></div></div>
+      <div class="prof-item"><div class="prof-label"><span>Flutter / Dart</span><span>82%</span></div><div class="prof-track"><div class="prof-fill" data-w="82"></div></div></div>
+      <div class="prof-item"><div class="prof-label"><span>Docker / AWS</span><span>80%</span></div><div class="prof-track"><div class="prof-fill" data-w="80"></div></div></div>
+      <div class="prof-item"><div class="prof-label"><span>React.js</span><span>75%</span></div><div class="prof-track"><div class="prof-fill" data-w="75"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-wrap">
+    <div class="section-head reveal"><span class="section-num">02 /</span><h2 class="section-title">Experience</h2><div class="section-line"></div></div>
+    <div class="exp-block reveal tilt-card">
+      <div class="exp-top"><div class="exp-role">AI Intern</div><div class="exp-date">Jan 2026 – Present</div></div>
+      <div class="exp-company">Rubixe AI · Think Ahead Innovations Pvt. Ltd. &nbsp;·&nbsp; 4 Months</div>
+      <ul class="exp-list">
+        <li>Developed an AI-powered system using Flutter and Django, trained on 1,000+ data points, achieving <strong>96–97.5% accuracy</strong>. Deployed with Docker and AWS, supporting 1,000+ users and integrating 10+ APIs — <strong>30% reduction in latency</strong>.</li>
+        <li>Built a Django-based team creation system with <strong>99.5% accuracy</strong>, reducing manual effort by 40%. Handles 100+ users and efficiently processes 500+ allocations.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROJECTS (Resume-based) -->
+<section id="projects">
+  <div class="section-wrap">
+    <div class="section-head reveal"><span class="section-num">03 /</span><h2 class="section-title">Featured Projects</h2><div class="section-line"></div></div>
+    <div class="projects-grid">
+
+      <div class="proj-card reveal tilt-card">
+        <div class="proj-period">Jan 2026 – Feb 2026</div>
+        <div class="proj-title">Dynamic Team Creation Engine</div>
+        <div class="proj-desc">Team allocation system managing 60K+ records across 2 roles and 3 workflows, processing 500+ allocations with email automation, admin analytics, and Docker deployment.</div>
+        <div class="proj-tech"><span>Django</span><span>MySQL</span><span>Docker</span><span>Email Automation</span></div>
+        <div class="proj-links">
+          <a href="https://github.com/MOHAMMED-KAIF-M" target="_blank" class="proj-link">
+            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="proj-card reveal tilt-card">
+        <div class="proj-period">Feb 2026 – Mar 2026</div>
+        <div class="proj-title">AI Placement Portal</div>
+        <div class="proj-desc">End-to-end placement platform with 3 dashboards, 7 modules, and 68+ REST endpoints. Features resume parsing (1K+ resumes), skill mapping, aptitude & coding tests, and a 15-question voice interview pipeline with 90%+ AI evaluation accuracy.</div>
+        <div class="proj-tech"><span>Django</span><span>Kafka</span><span>HDFS</span><span>AI Eval</span><span>PDF Reports</span></div>
+        <div class="proj-links">
+          <a href="https://github.com/MOHAMMED-KAIF-M" target="_blank" class="proj-link">
+            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="proj-card reveal tilt-card">
+        <div class="proj-period">Mar 2026 – Apr 2026</div>
+        <div class="proj-title">Computer Vision — Image Clustering</div>
+        <div class="proj-desc">Unsupervised image clustering system using semantic similarity and visual features. Groups images without predefined cluster counts using OpenAI CLIP vision-language model embeddings and HDBSCAN density-based clustering.</div>
+        <div class="proj-tech"><span>OpenAI CLIP</span><span>OpenCV</span><span>HDBSCAN</span><span>Python</span></div>
+        <div class="proj-links">
+          <a href="https://github.com/MOHAMMED-KAIF-M" target="_blank" class="proj-link">
+            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="proj-card reveal tilt-card">
+        <div class="proj-period">Apr 2026 – Present</div>
+        <div class="proj-title">PixelDwell AI Photo Platform</div>
+        <div class="proj-desc">Hybrid computer vision system for professional photo editing — HDR fusion, intelligent image alignment, and multi-stage image enhancement pipeline using Python, OpenCV, and scikit-image.</div>
+        <div class="proj-tech"><span>Python</span><span>OpenCV</span><span>scikit-image</span><span>HDR Fusion</span></div>
+        <div class="proj-links">
+          <a href="https://github.com/MOHAMMED-KAIF-M" target="_blank" class="proj-link">
+            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- GITHUB ALL REPOS -->
+<section id="github-repos">
+  <div class="section-wrap">
+    <div class="section-head reveal">
+      <span class="section-num">04 /</span>
+      <h2 class="section-title">GitHub Repositories</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="gh-filter-row reveal" id="gh-filters">
+      <button class="gh-filter active" data-lang="All">All <span class="gh-filter-count">19</span></button>
+      <button class="gh-filter" data-lang="Python">Python</button>
+      <button class="gh-filter" data-lang="HTML">HTML</button>
+      <button class="gh-filter" data-lang="Django">Django</button>
+      <button class="gh-filter" data-lang="ML/AI">ML / AI</button>
+    </div>
+
+    <div class="gh-repos-grid" id="gh-repos-grid">
+
+      <!-- 1 -->
+      <a class="gh-card reveal" href="https://github.com/MOHAMMED-KAIF-M/Spam-Mail-Detection-System-using-ML-NLP" target="_blank" rel="noopener" data-lang="Python" data-tags="Python ML/AI">
+        <div class="gh-card-top">
+          <div class="gh-card-name">Spam-Mail-Detection-System-using-ML-NLP</div>
+          <div class="gh-card-visibility">public</div>
+        </div>
+        <div class="gh-card-desc">ML web app that classifies email/SMS as Spam or Ham using NLP, TF-IDF vectorization and Naive Bayes/Logistic Regression. Trained on a dataset of 10,000 labeled messages via a Flask interface.</div>
+        <div class="gh-card-footer">
+          <span class="gh-lang-badge" style="border-color:#3572A522;color:#3572A5"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3572A5;margin-right:4px;vertical-align:middle"></span>Python</span>
+          <span class="gh-stars">★ 1</span>
+        </div>
+      </a>
+
+      <!-- 2 -->
+      <a class="gh-card reveal" href="https://github.com/MOHAMMED-KAIF-M/MUFG-06-SKIT" target="_blank" rel="noopener" data-lang="Python" data-tags="Python">
+        <div class="gh-card-top">
+          <div class="gh-card-name">MUFG-06-SKIT</div>
+          <div class="gh-card-visibility">public</div>
+        </div>
+        <div class="gh-card-desc">Source code repository for the TNS (Technology &amp; Networking Skills) course at SKIT. Contains capstone projects and module-wise assignments across 4 modules and 3 capstone projects.</div>
+        <div class="gh-card-footer">
+          <span class="gh-lang-badge" style="border-color:#3572A522;color:#3572A5"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3572A5;margin-right:4px;vertical-align:middle"></span>Python</span>
+          <span class="gh-stars">★ 1</span>
+        </div>
+      </a>
+
+      <!-- 3 -->
+      <a class="gh-card reveal" href="https://github.com/MOHAMMED-KAIF-M/AI-PDF-CHATBOT" target="_blank" rel="noopener" data-lang="Python" data-tags="Python ML/AI">
+        <div class="gh-card-top">
+          <div class="gh-card-name">AI-PDF-CHATBOT</div>
+          <div class="gh-card-visibility">public</div>
+        </div>
+        <div class="gh-card-desc">Intelligent system that lets users upload PDF documents and ask natural language questions. Extracts text, applies semantic search with NLP and LLMs, and delivers context-aware answers via a web interface.</div>
+        <div class="gh-card-footer">
+          <span class="gh-lang-badge" style="border-color:#3572A522;color:#3572A5"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3572A5;margin-right:4px;vertical-align:middle"></span>Python</span>
+          <span class="gh-stars">★ 0</span>
+        </div>
+      </a>
+
+      <!-- 4 -->
+      <a class="gh-card reveal" href="https://github.com/MOHAMMED-KAIF-M/Iris-Flower-Classification-System-Machine-Learning" target="_blank" rel="noopener" data-lang="HTML" data-tags="HTML Python ML/AI">
+        <div class="gh-card-top">
+          <div class="gh-card-name">Iris-Flower-Classification-System-ML</div>
+          <div class="gh-card-visibility">public</div>
+        </div>
+        <div class="gh-card-desc">Supervised ML project predicting iris flower species (Setosa, Versicolor, Virginica) from sepal/petal measurements. Compares Logistic Regression, KNN, SVM, Decision Tree &amp; Random Forest — achieves 95%+ accuracy.</div>
+        <div class="gh-card-footer">
+          <span class="gh-lang-badge" style="border-color:#e34c2622;color:#e34c26"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#e34c26;margin-right:4px;vertical-align:middle"></span>HTML</span>
+          <span class="gh-stars">★ 0</span>
+        </div>
+      </a>
+
+      <!-- 5 -->
+      <a class="gh-card reveal" href="https://github.com/MOHAMMED-KAIF-M/Diabetes-Prediction-System" target="_blank" rel="noopener" data-lang="HTML" data-tags="HTML Python ML/AI">
+        <div class="gh-card-top">
+          <div class="gh-card-name">Diabetes-Prediction-System</div>
+          <div class="gh-card-visibility">public</div>
+        </div>
+        <div class="gh-card-desc">ML project predicting diabetes risk from diagnostic medical parameters (glucose, BMI, age, blood pressure). Uses supervised learning algorithms trained on real medical data for early detection &amp; risk assessment.</div>
+        <div class="gh-card-footer">
+          <span class="gh-lang-badge" style="border-color:#e34c2622;color:#e34c26"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#e34c26;margin-right:4px;vertical-align:middle"></span>HTML</span>
+          <span class="gh-stars">★ 0</span>
+        </div>
+      </a>
+
+      <!-- 6 -->
+      <a class="gh-card reveal" href="https://github.com/MOHAMMED-KAIF-M/Attendence-Managament-System" target="_blank" rel="noopener" data-lang="Python" data-tags="Python Django">
+        <div class="gh-card-top">
+          <div class="gh-card-name">Attendence-Managament-System</div>
+          <div class="gh-card-visibility">public</div>
+        </div>
+        <div class="gh-card-desc">Flask-based attendance management system with role-based access (Admin, Teacher, Student). Supports automated attendance marking, check-in/check-out tracking, report generation, and email notifications.</div>
+        <div class="gh-card-footer">
+          <span class="gh-lang-badge" style="border-color:#3572A522;color:#3572A5"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3572A5;margin-right:4px;vertical-align:middle"></span>Python</span>
+          <span class="gh-stars">★ 0</span>
+        </div>
+      </a>
+
+      <!-- 7-19: remaining repos listed with links -->
+      <a class="gh-card reveal" href="https://github.com/MOHAMMED-KAIF-M?tab=repositories" target="_blank" rel="noopener" data-lang="All" data-tags="All">
+        <div class="gh-card-top">
+          <div class="gh-card-name" style="color:var(--muted)">+ 13 more repositories</div>
+          <div class="gh-card-visibility">public</div>
+        </div>
+        <div class="gh-card-desc" style="display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;gap:.6rem;padding:1rem 0">
+          <span style="font-size:2rem">🐙</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--accent3)">View all 19 repositories on GitHub →</span>
+        </div>
+        <div class="gh-card-footer">
+          <span class="gh-lang-badge">github.com/MOHAMMED-KAIF-M</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ACHIEVEMENTS -->
+<section id="achievements">
+  <div class="section-wrap">
+    <div class="section-head reveal"><span class="section-num">05 /</span><h2 class="section-title">Achievements</h2><div class="section-line"></div></div>
+    <div class="ach-grid">
+      <div class="ach-card reveal"><div class="ach-icon">🏆</div><div><div class="ach-name">HackZion V.1 — National CyberSecurity Hackathon</div><div class="ach-desc">Built a 24-hour security toolset competing against 300+ participants and 50+ teams at AMC College. Fixed 10+ vulnerabilities, strengthening resilience by ~40%.</div></div></div>
+      <div class="ach-card reveal"><div class="ach-icon">🇮🇳</div><div><div class="ach-name">Smart India Hackathon 2025 — Govt. of India</div><div class="ach-desc">Selected from 50,000+ teams across 70+ ministries. Developed a 36-hour prototype optimizing workflow efficiency by 35–40%.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="section-wrap">
+    <div class="section-head reveal"><span class="section-num">06 /</span><h2 class="section-title">Education</h2><div class="section-line"></div></div>
+    <div class="edu-grid">
+      <div class="edu-card reveal"><div class="edu-school">Sri Krishna Institute of Technology</div><div class="edu-degree">BE in Artificial Intelligence & Machine Learning</div><div class="edu-meta"><span>Nov 2022 – Present</span> CGPA: <span>8.32</span> Bangalore</div><div style="margin-top:.8rem" class="chip-row"><span class="chip">Python</span><span class="chip">AI & ML</span><span class="chip">GenAI</span><span class="chip">NLP</span></div></div>
+      <div class="edu-card reveal"><div class="edu-school">Vidya Soudha PU College</div><div class="edu-degree">Pre-University College · PCMB</div><div class="edu-meta"><span>Jul 2020 – Jun 2022</span> Percentage: <span>79.32%</span> Bangalore</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CERTIFICATIONS -->
+<section id="certifications">
+  <div class="section-wrap">
+    <div class="section-head reveal"><span class="section-num">07 /</span><h2 class="section-title">Certifications</h2><div class="section-line"></div></div>
+    <div class="cert-list reveal">
+      <div class="cert-item"><div class="cert-name">Explore ML (Python) · ML Foundations · Intro to AI</div><div class="cert-period">Nov 2024 – Jan 2025</div></div>
+      <div class="cert-item"><div class="cert-name">Data Science with Python · Data Analytics with Pandas · Intro to Data Science</div><div class="cert-period">Oct 2024 – Feb 2025</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <div class="reveal">
+      <p style="font-family:'DM Mono',monospace;font-size:.75rem;color:var(--accent3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem">Let's build something</p>
+      <h2 class="contact-title">Get In Touch</h2>
+      <p class="contact-sub">Open to internships, full-time roles, and interesting collaborations in AI & software engineering.</p>
+      <div class="contact-links">
+        <button class="contact-link" id="copy-email">✉ Copy Email</button>
+        <a href="https://www.linkedin.com/in/mohammed-kaif-m-571bb724b/" target="_blank" class="contact-link">in LinkedIn</a>
+        <a href="https://github.com/MOHAMMED-KAIF-M" target="_blank" class="contact-link">⌥ GitHub</a>
+        <a href="tel:+916360859268" class="contact-link">📞 +91 6360859268</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>Designed & built for Mohammed Kaif M · Bangalore 2026 &nbsp;·&nbsp; Press <kbd style="background:var(--surface2);padding:.1rem .4rem;border-radius:3px">⌘K</kbd> for quick nav</footer>
+
+<script>
+/* CURSOR */
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  const over=e.target.closest('a,button,.tilt-card,.gh-card');
+  cur.style.width=over?'20px':'12px';cur.style.height=over?'20px':'12px';
+  cur.style.background=over?'var(--accent3)':'var(--accent2)';
+  ring.style.width=over?'52px':'36px';ring.style.height=over?'52px':'36px';
+  ring.style.borderColor=over?'rgba(56,189,248,.5)':'rgba(192,132,252,.4)';
+});
+(function loopRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=Math.round(rx)+'px';ring.style.top=Math.round(ry)+'px';requestAnimationFrame(loopRing)})();
+
+/* PROGRESS BAR */
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const s=document.documentElement;
+  pb.style.width=(s.scrollTop/(s.scrollHeight-s.clientHeight)*100)+'%';
+});
+
+/* PARTICLES */
+const canvas=document.getElementById('particle-canvas'),ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',()=>{resize();init()});
+function rand(a,b){return a+Math.random()*(b-a)}
+function init(){pts=[];for(let i=0;i<85;i++)pts.push({x:rand(0,W),y:rand(0,H),vx:rand(-.3,.3),vy:rand(-.3,.3),r:rand(.8,2),o:rand(.2,.55)})}
+init();
+(function draw(){
+  ctx.clearRect(0,0,W,H);
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i];p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);ctx.fillStyle=`rgba(192,132,252,${p.o})`;ctx.fill();
+    for(let j=i+1;j<pts.length;j++){
+      const q=pts[j],dx=p.x-q.x,dy=p.y-q.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<115){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle=`rgba(123,94,167,${.16*(1-d/115)})`;ctx.lineWidth=.5;ctx.stroke()}
+    }
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* TYPEWRITER */
+const tw=document.getElementById('typewriter');
+const words=['AI Engineer','ML Developer','Backend Architect','Python Developer','Computer Vision Dev','Hackathon Winner'];
+let wi=0,ci=0,del=false;
+function type(){
+  const w=words[wi];
+  if(!del){tw.textContent=w.slice(0,++ci);if(ci===w.length){del=true;setTimeout(type,1800);return}}
+  else{tw.textContent=w.slice(0,--ci);if(ci===0){del=false;wi=(wi+1)%words.length}}
+  setTimeout(type,del?45:88);
+}
+setTimeout(type,1200);
+
+/* COUNTER */
+function animateCount(el,target){
+  let n=0;const step=target/55;
+  const t=setInterval(()=>{n=Math.min(n+step,target);el.textContent=Math.round(n);if(n>=target)clearInterval(t)},16);
+}
+const statsObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('[data-target]').forEach(el=>{if(el.dataset.target!=='0')animateCount(el,+el.dataset.target)});statsObs.disconnect()}})},{threshold:.3});
+const strip=document.querySelector('.stats-strip');if(strip)statsObs.observe(strip);
+
+/* SKILL BARS */
+const profObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.querySelectorAll('.prof-fill').forEach((f,i)=>{setTimeout(()=>{f.style.width=f.dataset.w+'%'},i*80)});profObs.unobserve(x.target)}})},{threshold:.2});
+const pg=document.getElementById('prof-grid');if(pg)profObs.observe(pg);
+
+/* 3D TILT */
+document.querySelectorAll('.tilt-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`perspective(700px) rotateY(${x*10}deg) rotateX(${-y*10}deg) scale(1.025)`;
+    card.style.transition='transform .05s';
+  });
+  card.addEventListener('mouseleave',()=>{card.style.transform='perspective(700px) rotateY(0deg) rotateX(0deg) scale(1)';card.style.transition='transform .4s ease'});
+});
+
+/* SCROLL REVEAL */
+const revObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+document.querySelectorAll('.skills-grid,.projects-grid,.ach-grid,.edu-grid').forEach(g=>{[...g.children].forEach((c,i)=>c.style.transitionDelay=`${i*.08}s`)});
+
+/* TOAST */
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
+
+/* COPY EMAIL */
+document.getElementById('copy-email').addEventListener('click',()=>{
+  navigator.clipboard.writeText('kaifkaif767686@gmail.com').then(()=>showToast('📋 Email copied to clipboard!')).catch(()=>showToast('✉ kaifkaif767686@gmail.com'));
+});
+
+/* COMMAND PALETTE */
+const cmds=[
+  {icon:'🏠',label:'Go to top',hint:'home',action:()=>gotoSection('#hero')},
+  {icon:'⚡',label:'Skills',hint:'skills',action:()=>gotoSection('#skills')},
+  {icon:'💼',label:'Experience',hint:'work',action:()=>gotoSection('#experience')},
+  {icon:'🚀',label:'Projects',hint:'code',action:()=>gotoSection('#projects')},
+  {icon:'🐙',label:'GitHub Repositories',hint:'github repos',action:()=>gotoSection('#github-repos')},
+  {icon:'🏆',label:'Achievements',hint:'awards',action:()=>gotoSection('#achievements')},
+  {icon:'🎓',label:'Education',hint:'study',action:()=>gotoSection('#education')},
+  {icon:'📜',label:'Certifications',hint:'certs',action:()=>gotoSection('#certifications')},
+  {icon:'✉',label:'Copy email address',hint:'contact',action:()=>{navigator.clipboard.writeText('kaifkaif767686@gmail.com').then(()=>showToast('📋 Email copied!'));closeCmd()}},
+  {icon:'🐙',label:'Open GitHub',hint:'github',action:()=>window.open('https://github.com/MOHAMMED-KAIF-M','_blank')},
+  {icon:'💼',label:'Open LinkedIn',hint:'linkedin',action:()=>window.open('https://www.linkedin.com/in/mohammed-kaif-m-571bb724b/','_blank')},
+];
+function gotoSection(id){document.querySelector(id)?.scrollIntoView({behavior:'smooth'});closeCmd()}
+
+const overlay=document.getElementById('cmd-overlay');
+const cinput=document.getElementById('cmd-input');
+const cresults=document.getElementById('cmd-results');
+let active=0,filtered=[...cmds];
+
+function openCmd(){overlay.classList.add('open');cinput.value='';renderCmds(cmds);active=0;setTimeout(()=>cinput.focus(),60)}
+function closeCmd(){overlay.classList.remove('open')}
+
+function renderCmds(list){
+  filtered=list;active=0;
+  cresults.innerHTML=list.map((c,i)=>`<div class="cmd-item${i===0?' active':''}" data-i="${i}"><span class="cmd-item-icon">${c.icon}</span><span class="cmd-item-label">${c.label}</span><span class="cmd-item-hint">${c.hint}</span></div>`).join('');
+  cresults.querySelectorAll('.cmd-item').forEach(el=>el.addEventListener('click',()=>filtered[+el.dataset.i].action()));
+}
+cinput.addEventListener('input',()=>{const q=cinput.value.toLowerCase();renderCmds(cmds.filter(c=>c.label.toLowerCase().includes(q)||c.hint.includes(q)))});
+cinput.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){active=Math.min(active+1,filtered.length-1);e.preventDefault()}
+  else if(e.key==='ArrowUp'){active=Math.max(active-1,0);e.preventDefault()}
+  else if(e.key==='Enter'){filtered[active]?.action();return}
+  else if(e.key==='Escape'){closeCmd();return}
+  cresults.querySelectorAll('.cmd-item').forEach((el,i)=>el.classList.toggle('active',i===active));
+  cresults.querySelectorAll('.cmd-item')[active]?.scrollIntoView({block:'nearest'});
+});
+document.getElementById('open-cmd').addEventListener('click',openCmd);
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();overlay.classList.contains('open')?closeCmd():openCmd()}});
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeCmd()});
+
+/* GITHUB FILTER */
+document.querySelectorAll('.gh-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.gh-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const lang = btn.dataset.lang;
+    document.querySelectorAll('.gh-card').forEach(card => {
+      const tags = card.dataset.tags || '';
+      card.style.display = (lang === 'All' || tags.includes(lang)) ? '' : 'none';
+    });
+  });
+});
+
+/* Animate repo stat */
+const repoStat = document.getElementById('repo-stat');
+if (repoStat) { repoStat.dataset.target = 19; }
+</script>
+</body>
+</html>
